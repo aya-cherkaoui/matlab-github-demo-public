@@ -1,0 +1,33 @@
+# =============================================================================
+# .gitattributes — Ensure consistent handling of MATLAB files across platforms
+# =============================================================================
+
+# ---- Text files (normalise line endings) ----------------------------------
+*.m        text diff=matlab
+*.mlx      binary
+*.mat      binary
+*.fig      binary
+*.slx      binary
+*.mdl      text
+*.mexa64   binary
+*.mexw64   binary
+*.mexmaci64 binary
+*.p        binary
+
+# ---- Common text files ----------------------------------------------------
+*.md       text diff=markdown
+*.txt      text
+*.csv      text
+*.json     text
+*.xml      text
+*.yml      text
+*.yaml     text
+
+# ---- Images ---------------------------------------------------------------
+*.png      binary
+*.jpg      binary
+*.svg      text
+
+# ---- Git LFS (uncomment if you use Git LFS for large data) ---------------
+# data/**/*.mat  filter=lfs diff=lfs merge=lfs -text
+# data/**/*.csv  filter=lfs diff=lfs merge=lfs -text

@@ -1,0 +1,43 @@
+# =============================================================================
+# .gitignore — MATLAB + Simulink projects
+# =============================================================================
+
+# ---- MATLAB auto-generated files -----------------------------------------
+*.asv                  # Auto-save files
+*.m~                   # Backup files
+*.mex*                 # Compiled MEX binaries
+*.mlappinstall         # App installer files
+*.mltbx                # Toolbox files
+slprj/                 # Simulink cache folder
+*.slxc                 # Simulink cache files
+
+# ---- MATLAB project metadata (re-created by MATLAB) ----------------------
+*.mlproj               # Uncomment if you prefer NOT to track project files
+resources/project/     # Project resource metadata
+
+# ---- Build & output artifacts --------------------------------------------
+codegen/               # MATLAB Coder output
+results/*.mat          # Generated result files (reproducible)
+results/*.png          # Generated figures (reproducible)
+results/*.txt          # Generated reports (reproducible)
+
+# ---- Data files (large / binary — track via Git LFS or not at all) -------
+data/*.mat             # Raw/generated data
+
+# ---- OS files ------------------------------------------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.lnk
+
+# ---- Editor / IDE temp files ---------------------------------------------
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# ---- Temporary / logs ----------------------------------------------------
+*.log
+tmp/
+temp/
