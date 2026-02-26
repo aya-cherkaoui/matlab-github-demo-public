@@ -1,8 +1,8 @@
 # 🧪 MATLAB + GitHub Demo Project
 
-> **A turnkey demonstration of how to use MATLAB in a professional, version-controlled workflow with Git & GitHub.**
+> **A turnkey demonstration of how to use MATLAB Online in a professional, version-controlled workflow with Git & GitHub.**
 
-[![MATLAB](https://img.shields.io/badge/MATLAB-R2023b%2B-blue?logo=mathworks)](https://mathworks.com)
+[![MATLAB](https://img.shields.io/badge/MATLAB_Online-R2024a%2B-blue?logo=mathworks)](https://matlab.mathworks.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-passing-brightgreen)](#-running-tests)
 
@@ -13,20 +13,18 @@
 1. [Overview](#-overview)
 2. [Project Structure](#-project-structure)
 3. [Prerequisites](#-prerequisites)
-4. [Getting Started](#-getting-started)
-   - [Clone the Repository](#1-clone-the-repository)
-   - [Open in MATLAB](#2-open-in-matlab)
-   - [Run the Pipeline](#3-run-the-pipeline)
+4. [Getting Started with MATLAB Online](#-getting-started-with-matlab-online)
 5. [MATLAB Environment Setup](#-matlab-environment-setup)
-6. [Git & GitHub Integration](#-git--github-integration)
-   - [Initial Git Setup](#step-1--initial-git-setup)
-   - [Connecting to GitHub](#step-2--connecting-to-github)
-   - [Daily Workflow](#step-3--daily-git-workflow)
-   - [Branching Strategy](#step-4--branching-strategy)
-   - [Using Git from MATLAB](#using-git-directly-from-matlab)
+6. [Git & GitHub Integration from MATLAB Online](#-git--github-integration-from-matlab-online)
+   - [Method 1: Using the gitHelper tool](#method-1--using-the-githelper-tool-recommended)
+   - [Method 2: Using MATLAB's Source Control UI](#method-2--using-matlabs-source-control-ui)
+   - [Method 3: Using shell commands](#method-3--using-shell-commands-git)
+   - [Connecting to GitHub](#connecting-to-github)
+   - [Daily Workflow](#daily-git-workflow)
+   - [Branching & Pull Requests](#branching--pull-requests)
 7. [Running Tests](#-running-tests)
-8. [GitHub Actions CI (Optional)](#-github-actions-ci-optional)
-9. [Project Functions Reference](#-project-functions-reference)
+8. [GitHub Actions CI](#-github-actions-ci-optional)
+9. [Functions Reference](#-functions-reference)
 10. [Best Practices](#-best-practices)
 11. [Troubleshooting](#-troubleshooting)
 12. [License](#-license)
@@ -35,15 +33,16 @@
 
 ## 🔍 Overview
 
-This project demonstrates a **complete, production-style MATLAB workflow** integrated with **Git** and **GitHub**. It is designed to show a client:
+This project demonstrates a **complete, production-style MATLAB workflow** integrated with **Git** and **GitHub**, running entirely in **MATLAB Online**. It is designed to show a client:
 
 | Capability | What We Demonstrate |
 |---|---|
-| **MATLAB Environment** | Project bootstrapping via `startup.m`, clean folder layout, path management |
+| **MATLAB Online** | Cloud-based MATLAB — no local install required |
+| **Project Bootstrap** | One-script setup via `setupProject.m`, auto-path via `startup.m` |
 | **Signal Processing** | Synthetic signal generation, FFT spectral analysis, peak detection |
 | **Automated Testing** | Full test suite using `matlab.unittest` framework |
-| **Version Control** | Git initialisation, commits, branches, merge, `.gitignore`, `.gitattributes` |
-| **GitHub Collaboration** | Remote push, pull requests, issue tracking, CI with GitHub Actions |
+| **Version Control (Git)** | Init, commits, branches, merge — all from the MATLAB command window |
+| **GitHub Collaboration** | Remote push/pull, pull requests, issue tracking, CI with GitHub Actions |
 | **Reproducibility** | Seeded RNG, saved configs, generated reports |
 
 ### What does the pipeline do?
@@ -59,116 +58,93 @@ Generate Signal  ➜  Analyse (FFT + Stats)  ➜  Visualise  ➜  Export Report
 ```
 matlab-github-demo/
 │
-├── main.m                  # 🚀 Entry point — runs the full pipeline
-├── startup.m               # 🔧 Auto-configures MATLAB paths on project open
+├── setupProject.m           # 🏗️  ONE-CLICK setup — creates the entire project
+├── gitHelper.m              # 🔗 Git commands from MATLAB command window
+├── main.m                   # 🚀 Entry point — runs the full analysis pipeline
+├── startup.m                # 🔧 Auto-configures MATLAB paths on project open
 ├── runAllTests.m            # ✅ Runs the complete test suite
 │
-├── src/                    # 📦 Source functions
-│   ├── generateSignal.m    #     Create multi-frequency test signal
-│   ├── analyseSignal.m     #     FFT analysis + statistics
-│   ├── visualiseResults.m  #     Publication-quality plots
-│   └── generateReport.m    #     Text summary report generator
+├── src/                     # 📦 Source functions
+│   ├── generateSignal.m     #     Create multi-frequency test signal
+│   ├── analyseSignal.m      #     FFT analysis + statistics
+│   ├── visualiseResults.m   #     Publication-quality plots
+│   └── generateReport.m     #     Text summary report generator
 │
-├── tests/                  # 🧪 Unit tests (matlab.unittest)
+├── tests/                   # 🧪 Unit tests (matlab.unittest)
 │   ├── TestGenerateSignal.m
 │   └── TestAnalyseSignal.m
 │
-├── data/                   # 📊 Raw/generated data (git-ignored)
-├── results/                # 📈 Output figures & reports (git-ignored)
-├── docs/                   # 📝 Documentation & images
-│   └── images/
+├── data/                    # 📊 Raw/generated data (git-ignored)
+├── results/                 # 📈 Output figures & reports (git-ignored)
+├── docs/                    # 📝 Additional documentation
 │
-├── .gitignore              # 🚫 Files excluded from version control
-├── .gitattributes          # 📐 Line-ending & binary file rules
-├── CONTRIBUTING.md         # 🤝 Contribution guidelines
-├── LICENSE                 # ⚖️  MIT License
-└── README.md               # 📖 This file
+├── .gitignore               # 🚫 Files excluded from version control
+├── .gitattributes           # 📐 Line-ending & binary file rules
+├── .github/workflows/ci.yml # 🤖 GitHub Actions CI pipeline
+├── CONTRIBUTING.md          # 🤝 Contribution guidelines
+├── LICENSE                  # ⚖️  MIT License
+└── README.md                # 📖 This file
 ```
 
 ---
 
 ## ✅ Prerequisites
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| **MATLAB** | R2023b or later | Core development environment |
-| **Signal Processing Toolbox** | (included in most licenses) | `findpeaks` function |
-| **Git** | 2.30+ | Version control |
-| **GitHub account** | — | Remote repository hosting |
+| Requirement | Details |
+|-------------|---------|
+| **MATLAB Online** | [matlab.mathworks.com](https://matlab.mathworks.com) — MathWorks account required |
+| **MATLAB License** | Academic, Professional, or Home license with Online access |
+| **Signal Processing Toolbox** | For `findpeaks` (included in most licenses) |
+| **GitHub account** | [github.com](https://github.com) — free tier is sufficient |
 
-### Verify Git is installed
-
-```bash
-git --version
-# Expected: git version 2.x.x
-```
-
-### Verify MATLAB from the command line (optional)
-
-```bash
-matlab -batch "disp('MATLAB is ready')"
-```
+> 💡 **No local install needed.** Everything runs in the browser via MATLAB Online.
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Getting Started with MATLAB Online
 
-### 1. Clone the Repository
+### Option A — Fresh Setup (run `setupProject`)
 
-```bash
-# HTTPS
-git clone https://github.com/<your-username>/matlab-github-demo.git
+If you are starting from scratch in MATLAB Online:
 
-# or SSH
-git clone git@github.com:<your-username>/matlab-github-demo.git
+**Step 1:** Upload `setupProject.m` to your MATLAB Online drive (drag & drop into the Current Folder panel)
 
-cd matlab-github-demo
-```
-
-### 2. Open in MATLAB
-
-Open MATLAB and navigate to the project folder:
+**Step 2:** Run it from the Command Window:
 
 ```matlab
-cd('C:\path\to\matlab-github-demo')
-% startup.m runs automatically and configures paths
+>> setupProject
 ```
 
-You should see:
+This single command will:
+- ✅ Create the entire folder structure (`src/`, `tests/`, `data/`, `results/`, `docs/`)
+- ✅ Write all source files, tests, and configuration files
+- ✅ Configure the MATLAB path
+- ✅ Initialise a local Git repository
+- ✅ Make the initial commit
 
-```
-MATLAB-GitHub-Demo project loaded.
-  Project root : C:\path\to\matlab-github-demo
-  Type "main" to run the full pipeline.
-```
-
-### 3. Run the Pipeline
+**Step 3:** Navigate to the project and run:
 
 ```matlab
->> main
+>> cd(fullfile(userpath, 'matlab-github-demo'))
+>> main          % run the analysis pipeline
+>> runAllTests   % run the test suite
 ```
 
-**Expected output:**
+### Option B — Clone from GitHub
 
+If the project is already on GitHub:
+
+**Step 1:** In MATLAB Online, go to **Home → New → Project → From Git**
+
+**Step 2:** Paste the repository URL:
 ```
-=== MATLAB + GitHub Demo Pipeline ===
-Sample Rate  : 1000 Hz
-Duration     : 2.0 s
-Signal Freqs : [5 12 30] Hz
-Noise Level  : 0.30
+https://github.com/<your-username>/matlab-github-demo.git
+```
 
-[1/4] Generating synthetic data …
-      Saved → data/raw_signal.mat
-[2/4] Running analysis …
-[3/4] Generating plots …
-      Exported → results/TimeDomain.png
-      Exported → results/FrequencySpectrum.png
-      Exported → results/StatsSummary.png
-[4/4] Saving results …
-      Saved → results/analysis_results.mat
-      Report → results/summary_report.txt
-
-=== Pipeline complete ===
+**Step 3:** MATLAB will clone the repo and set up the project. Then run:
+```matlab
+>> startup    % configure paths
+>> main       % run the pipeline
 ```
 
 ---
@@ -179,9 +155,15 @@ Noise Level  : 0.30
 
 When you `cd` into the project root, MATLAB automatically runs `startup.m`, which:
 
-1. **Adds `src/`** to the MATLAB search path
+1. **Adds `src/`** to the MATLAB search path — all functions become available
 2. **Creates output directories** (`data/`, `results/`) if they don't exist
 3. **Prints a welcome message** confirming the project is loaded
+
+```
+MATLAB-GitHub-Demo project loaded.
+  Project root : /MATLAB Drive/matlab-github-demo
+  Type "main" to run the full pipeline.
+```
 
 ### Manual Path Setup (if needed)
 
@@ -190,131 +172,199 @@ addpath('src');
 addpath('tests');
 ```
 
-### Using MATLAB Projects (`.prj`) — Advanced
+### Using MATLAB Projects (`.prj`) — Optional
 
-For larger teams, you can create a MATLAB Project:
+In MATLAB Online, you can also create a formal MATLAB Project for richer integration:
 
 ```
-MATLAB → Home tab → New → Project → From Folder → select matlab-github-demo/
+Home tab → New → Project → From Folder → select matlab-github-demo/
 ```
 
 This gives you:
-- Dependency analysis
+- Visual dependency graph
 - Automated path management
-- Shortcut buttons
-- Built-in Git integration panel
+- Shortcut buttons on the toolbar
+- Built-in Git integration panel in the GUI
 
 ---
 
-## 🔗 Git & GitHub Integration
+## 🔗 Git & GitHub Integration from MATLAB Online
 
-This section walks through the **complete Git + GitHub setup** step by step.
+MATLAB Online supports Git natively. Here are **three methods** to interact with Git:
 
-### Step 1 — Initial Git Setup
+---
 
-```bash
-# Navigate to the project
-cd matlab-github-demo
+### Method 1 — Using the `gitHelper` tool (Recommended)
 
-# Initialise a Git repository
-git init
+The project includes `gitHelper.m`, a wrapper that gives you simple, memorable Git commands directly from the MATLAB Command Window:
 
-# Configure your identity (first time only)
-git config user.name "Your Name"
-git config user.email "you@example.com"
+```matlab
+%% Check what files have changed
+>> gitHelper status
 
-# Stage all project files
-git add .
+%% Stage all changes for commit
+>> gitHelper add
 
-# Make the first commit
-git commit -m "Initial commit: MATLAB signal processing demo"
+%% Stage a specific file only
+>> gitHelper add "src/analyseSignal.m"
+
+%% Commit staged changes with a message
+>> gitHelper commit "feat: add SNR estimation to analyseSignal"
+
+%% Push commits to GitHub
+>> gitHelper push
+
+%% Pull latest changes from GitHub
+>> gitHelper pull
+
+%% View recent commit history
+>> gitHelper log
+
+%% See remote URL, branch, and status at a glance
+>> gitHelper info
+
+%% Create a new feature branch and switch to it
+>> gitHelper branch "feature/bandpass-filter"
+
+%% Switch to an existing branch
+>> gitHelper checkout "main"
+
+%% View uncommitted code changes
+>> gitHelper diff
+
+%% Set the GitHub remote URL (first time setup)
+>> gitHelper setremote "https://github.com/user/repo.git"
 ```
 
-### Step 2 — Connecting to GitHub
+---
 
-1. **Create a new repository** on [github.com](https://github.com/new)
-   - Name: `matlab-github-demo`
-   - Visibility: Public or Private
-   - **Do NOT** initialise with README (we already have one)
+### Method 2 — Using MATLAB's Source Control UI
 
-2. **Link and push:**
+MATLAB Online has a built-in graphical Git interface:
 
-```bash
-git remote add origin https://github.com/<your-username>/matlab-github-demo.git
-git branch -M main
-git push -u origin main
+1. **Current Folder panel** → right-click any file → **Source Control**
+2. Or go to **Home tab → Project → Source Control**
+
+From the UI you can:
+- 📂 View modified files (highlighted in the Current Folder)
+- ➕ Stage / unstage files
+- 💬 Commit with a message
+- ⬆️ Push / ⬇️ Pull
+- 🌿 View branch history
+- ⚔️ Resolve merge conflicts
+
+> This is the most visual method and is great for demos.
+
+---
+
+### Method 3 — Using shell commands (`!git`)
+
+You can run any raw Git command using the `!` prefix:
+
+```matlab
+>> !git status
+>> !git add .
+>> !git commit -m "fix: correct FFT scaling factor"
+>> !git push
+>> !git log --oneline -10
 ```
 
-### Step 3 — Daily Git Workflow
+---
 
-```bash
-# 1. Check what changed
-git status
+### Connecting to GitHub
 
-# 2. See the actual changes
-git diff
+**First time only** — link your local Git repository to a GitHub remote:
 
-# 3. Stage specific files
-git add src/analyseSignal.m
+**Step 1:** Create a new repository on [github.com/new](https://github.com/new):
+- **Name:** `matlab-github-demo`
+- **Visibility:** Public or Private
+- ⚠️ **Do NOT** initialise with README, .gitignore, or license (we already have all of these)
 
-# 4. Or stage everything
-git add .
+**Step 2:** In the MATLAB Online Command Window:
 
-# 5. Commit with a meaningful message
-git commit -m "feat: add SNR estimation to analyseSignal"
+```matlab
+>> gitHelper setremote "https://github.com/<your-username>/matlab-github-demo.git"
+>> gitHelper push
+```
 
-# 6. Push to GitHub
-git push
+> 🔑 **Authentication:** MATLAB Online will prompt you for GitHub credentials.
+> 
+> For HTTPS remotes, use a **Personal Access Token (PAT)** instead of your GitHub password:
+> 1. Go to: **GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)**
+> 2. Click **"Generate new token (classic)"**
+> 3. Select scope: **`repo`** (full control of private repositories)
+> 4. Copy the token and use it as your password when prompted
+
+---
+
+### Daily Git Workflow
+
+A typical development session in MATLAB Online:
+
+```matlab
+%% 1. Start by pulling the latest changes (if collaborating)
+>> gitHelper pull
+
+%% 2. Do your work — edit files, run analysis, run tests
+>> main
+>> runAllTests
+
+%% 3. Check what changed
+>> gitHelper status
+
+%% 4. Stage and commit with a descriptive message
+>> gitHelper add
+>> gitHelper commit "feat: add bandpass filter to analyseSignal"
+
+%% 5. Push to GitHub
+>> gitHelper push
+```
+
+---
+
+### Branching & Pull Requests
+
+For team collaboration, always work on feature branches:
+
+```matlab
+%% Create and switch to a new branch
+>> gitHelper branch "feature/improved-plots"
+
+%% ... make your changes in MATLAB Online ...
+%% ... run tests to verify ...
+
+%% Commit on the feature branch
+>> gitHelper add
+>> gitHelper commit "feat: improve plot styling and add peak annotations"
+
+%% Push the feature branch to GitHub
+>> !git push -u origin feature/improved-plots
+```
+
+Then on **GitHub.com**:
+1. Open a **Pull Request** from `feature/improved-plots` → `main`
+2. Add a description of what changed and why
+3. Request a review from team members
+4. After approval, click **Merge**
+
+Back in **MATLAB Online**:
+```matlab
+>> gitHelper checkout "main"
+>> gitHelper pull
 ```
 
 #### Commit Message Convention
 
-We recommend [Conventional Commits](https://www.conventionalcommits.org/):
+We use [Conventional Commits](https://www.conventionalcommits.org/) for a clean history:
 
 | Prefix | When to use | Example |
 |--------|------------|---------|
 | `feat:` | New feature | `feat: add bandpass filter` |
 | `fix:` | Bug fix | `fix: correct FFT scaling` |
-| `docs:` | Documentation | `docs: update README setup instructions` |
-| `test:` | Adding tests | `test: add edge-case tests for generateSignal` |
-| `refactor:` | Code restructure | `refactor: extract config to separate file` |
-| `chore:` | Maintenance | `chore: update .gitignore` |
-
-### Step 4 — Branching Strategy
-
-```bash
-# Create a feature branch
-git checkout -b feature/bandpass-filter
-
-# ... make changes ...
-git add .
-git commit -m "feat: implement bandpass filter function"
-
-# Push the branch to GitHub
-git push -u origin feature/bandpass-filter
-
-# On GitHub: open a Pull Request → review → merge
-
-# Back on your machine, sync
-git checkout main
-git pull
-```
-
-### Using Git Directly from MATLAB
-
-MATLAB has a built-in Git panel (R2023b+):
-
-```matlab
-% Check current Git status from MATLAB
-!git status
-
-% Quick commit from MATLAB command window
-!git add .
-!git commit -m "update: improve visualisation colors"
-!git push
-```
-
-Or use the **Current Folder** panel → right-click → **Source Control** menu.
+| `docs:` | Documentation only | `docs: update README setup instructions` |
+| `test:` | Adding/updating tests | `test: add edge-case tests for generateSignal` |
+| `refactor:` | Code restructure (no new feature) | `refactor: extract config to separate file` |
+| `chore:` | Maintenance / tooling | `chore: update .gitignore` |
 
 ---
 
@@ -340,9 +390,9 @@ Running TestGenerateSignal
   ✓ testOutputSizes
   ✓ testCorrectNumberOfSamples
   ✓ testZeroNoise
-  ✓ testPeakFrequencyDetected(Frequency=5)
-  ✓ testPeakFrequencyDetected(Frequency=20)
-  ✓ testPeakFrequencyDetected(Frequency=100)
+  ✓ testPeakFrequencyDetected (Frequency=5)
+  ✓ testPeakFrequencyDetected (Frequency=20)
+  ✓ testPeakFrequencyDetected (Frequency=100)
   ✓ testReproducibility
 
 === Test Summary ===
@@ -350,45 +400,35 @@ Total : 12
 Passed: 12
 Failed: 0
 
-All tests passed ✓
+All tests passed.
 ```
 
 ### Run a single test class
 
 ```matlab
-results = runtests('tests/TestGenerateSignal.m');
-disp(results);
+>> runtests('tests/TestGenerateSignal.m')
 ```
 
 ---
 
 ## 🤖 GitHub Actions CI (Optional)
 
-You can run MATLAB tests automatically on every push using [MATLAB Actions for GitHub](https://github.com/matlab-actions).
-
-Create `.github/workflows/ci.yml`:
+The project includes a GitHub Actions workflow at `.github/workflows/ci.yml` that automatically runs all MATLAB tests on every push and pull request to `main`.
 
 ```yaml
 name: MATLAB CI
-
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up MATLAB
-        uses: matlab-actions/setup-matlab@v2
-
-      - name: Run tests
-        uses: matlab-actions/run-tests@v2
+      - uses: actions/checkout@v4
+      - uses: matlab-actions/setup-matlab@v2
+      - uses: matlab-actions/run-tests@v2
         with:
           source-folder: src
           test-results-junit: results/test-results.xml
@@ -398,16 +438,18 @@ jobs:
 
 ---
 
-## 📚 Project Functions Reference
+## 📚 Functions Reference
 
 ### `generateSignal(fs, duration, freqs, noiseLevel)`
+
+Creates a multi-frequency test signal with additive Gaussian noise.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `fs` | double | Sampling frequency (Hz) |
 | `duration` | double | Signal length (seconds) |
 | `freqs` | double vector | Frequencies to superimpose (Hz) |
-| `noiseLevel` | double | Std dev of Gaussian noise (default: 0.1) |
+| `noiseLevel` | double | Std dev of noise (default: 0.1) |
 
 **Returns:** `[t, cleanSignal, noisySignal]`
 
@@ -415,19 +457,21 @@ jobs:
 
 ### `analyseSignal(t, signal, fs)`
 
+Performs FFT spectral analysis, peak detection, and computes statistics.
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `t` | double vector | Time axis |
 | `signal` | double vector | Input signal |
 | `fs` | double | Sampling frequency (Hz) |
 
-**Returns:** `results` struct with fields: `freq`, `powerSpectrum`, `peakFreqs`, `peakPowers`, `meanVal`, `stdVal`, `rmsVal`, `maxVal`, `minVal`, `snrEstimate`
+**Returns:** struct with fields: `freq`, `powerSpectrum`, `peakFreqs`, `peakPowers`, `meanVal`, `stdVal`, `rmsVal`, `maxVal`, `minVal`, `snrEstimate`
 
 ---
 
 ### `visualiseResults(t, cleanSignal, noisySignal, results, config)`
 
-Generates three figures: Time Domain, Frequency Spectrum, and Statistics Summary.
+Generates three publication-quality figures: Time Domain, Frequency Spectrum, Statistics Summary.
 
 **Returns:** Array of figure handles
 
@@ -435,7 +479,13 @@ Generates three figures: Time Domain, Frequency Spectrum, and Statistics Summary
 
 ### `generateReport(results, config, outputPath)`
 
-Writes a formatted text report to the specified path.
+Writes a formatted plain-text summary report to the specified path.
+
+---
+
+### `gitHelper(command, arg)`
+
+Wrapper for common Git operations from the MATLAB Command Window. See [Git Integration](#method-1--using-the-githelper-tool-recommended) for full command list.
 
 ---
 
@@ -443,22 +493,26 @@ Writes a formatted text report to the specified path.
 
 ### MATLAB
 
-- ✅ Use **argument validation blocks** (`arguments … end`) for input checking
-- ✅ Add **docstrings** with `%FUNCTIONNAME  One-line description` format
-- ✅ Use `startup.m` for automatic path configuration
-- ✅ Keep functions in `/src`, tests in `/tests`, data in `/data`
-- ✅ Use `rng(seed)` for reproducible random results
-- ✅ Export figures with `exportgraphics()` for consistent resolution
+| Practice | Why |
+|----------|-----|
+| Use `arguments` validation blocks | Input validation built into the language |
+| Add `%FUNCTIONNAME` help blocks | Enables `help functionName` and auto-documentation |
+| Use `startup.m` | Auto-configures paths when opening the project folder |
+| Separate `src/`, `tests/`, `data/` | Clean, navigable, professional project layout |
+| Use `rng(seed)` | Reproducible random results across runs and machines |
+| Use `exportgraphics()` | Consistent figure export resolution |
 
 ### Git & GitHub
 
-- ✅ Commit **small, logical changes** — not entire days of work
-- ✅ Write **meaningful commit messages** using conventional commits
-- ✅ Use **branches** for features; merge via **Pull Requests**
-- ✅ Add `.gitignore` to exclude generated files (`.mat`, `.png`, `.asv`)
-- ✅ Add `.gitattributes` to handle binary MATLAB files properly
-- ✅ Never commit **large data files** — use Git LFS or external storage
-- ✅ Tag releases: `git tag -a v1.0.0 -m "First stable release"`
+| Practice | Why |
+|----------|-----|
+| Commit small, logical changes | Easy to review, revert, and understand |
+| Use conventional commit messages | Standardised, searchable history |
+| Use branches for features | Isolate work; merge via Pull Requests |
+| Add `.gitignore` | Don't track generated `.mat`, `.png`, `.asv` files |
+| Add `.gitattributes` | Handle binary MATLAB files correctly across OS |
+| Never commit large data files | Use Git LFS or external storage for big datasets |
+| Tag releases | `!git tag -a v1.0.0 -m "First stable release"` |
 
 ---
 
@@ -467,11 +521,13 @@ Writes a formatted text report to the specified path.
 | Problem | Solution |
 |---------|----------|
 | `Undefined function 'generateSignal'` | Run `startup` or `addpath('src')` |
-| `Undefined function 'findpeaks'` | Install the Signal Processing Toolbox |
-| `git: command not found` | [Install Git](https://git-scm.com/downloads) and restart terminal |
+| `Undefined function 'findpeaks'` | You need the Signal Processing Toolbox |
+| Git commands fail in MATLAB Online | Check **Preferences → MATLAB → Source Control** is set to Git |
+| Can't push to GitHub | Use a [Personal Access Token](https://github.com/settings/tokens) instead of password |
 | Figures don't export | Ensure `results/` directory exists: `mkdir('results')` |
-| Merge conflicts in `.mat` files | Avoid committing binary `.mat` files; they can't be merged |
-| MATLAB doesn't detect Git | Go to **Preferences → MATLAB → General → Source Control** and set the Git binary path |
+| Merge conflicts in `.mat` files | Don't commit binary `.mat` files — they can't be merged |
+| `setupProject` says Git not available | Use MATLAB's GUI: right-click in Current Folder → Source Control |
+| MATLAB Online can't find project files | Run `cd(fullfile(userpath, 'matlab-github-demo'))` then `startup` |
 
 ---
 
@@ -482,6 +538,6 @@ This project is licensed under the **MIT License** — see [LICENSE](LICENSE) fo
 ---
 
 <p align="center">
-  <strong>Built with ❤️ using MATLAB & GitHub</strong><br>
-  <em>A demonstration project for professional MATLAB workflows</em>
+  <strong>Built with ❤️ using MATLAB Online & GitHub</strong><br>
+  <em>A demonstration project for professional cloud-based MATLAB workflows</em>
 </p>
