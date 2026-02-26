@@ -29,8 +29,8 @@ function gitHelper(command, varargin)
 %
 %   See also SETUPPROJECT
 
-    arguments
-        command (1,:) char {mustBeNonempty}
+    if nargin < 1 || isempty(command)
+        error('gitHelper:noCommand', 'Usage: gitHelper <command> [arg]');
     end
 
     switch lower(command)
