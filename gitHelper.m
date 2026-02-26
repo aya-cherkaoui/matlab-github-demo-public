@@ -54,7 +54,7 @@ function gitHelper(command, varargin)
             msg = varargin{1};
             [status, result] = system(sprintf('git commit -m "%s"', msg));
             if status == 0
-                fprintf('✓ Committed: %s\n', msg);
+                fprintf('Committed: %s\n', msg);
             else
                 fprintf('%s\n', result);
             end
@@ -63,7 +63,7 @@ function gitHelper(command, varargin)
             fprintf('Pushing to remote…\n');
             [status, result] = system('git push -u origin main');
             if status == 0
-                fprintf('✓ Pushed successfully.\n');
+                fprintf('Pushed successfully.\n');
             else
                 fprintf('%s\n', result);
                 fprintf('\nIf this is your first push, set the remote first:\n');
@@ -80,7 +80,7 @@ function gitHelper(command, varargin)
             if ~isempty(varargin)
                 branchName = varargin{1};
                 system(sprintf('git checkout -b %s', branchName));
-                fprintf('✓ Created and switched to branch: %s\n', branchName);
+                fprintf('Created and switched to branch: %s\n', branchName);
             else
                 system('git branch -a');
             end
@@ -102,7 +102,7 @@ function gitHelper(command, varargin)
             system('git remote remove origin 2>/dev/null');
             [status, ~] = system(sprintf('git remote add origin %s', url));
             if status == 0
-                fprintf('✓ Remote set to: %s\n', url);
+                fprintf('Remote set to: %s\n', url);
                 fprintf('  Now run: gitHelper push\n');
             end
 

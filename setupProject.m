@@ -30,7 +30,7 @@ if ~exist(projectRoot, 'dir')
     mkdir(projectRoot);
 end
 cd(projectRoot);
-fprintf('[✓] Project root: %s\n', projectRoot);
+fprintf('[ok] Project root: %s\n', projectRoot);
 
 %% ---- 2. Create folder structure ----------------------------------------
 folders = {'src', 'tests', 'data', 'results', 'docs', 'docs/images', ...
@@ -39,41 +39,41 @@ for k = 1:numel(folders)
     d = fullfile(projectRoot, folders{k});
     if ~exist(d, 'dir'), mkdir(d); end
 end
-fprintf('[✓] Folder structure created\n');
+fprintf('[ok] Folder structure created\n');
 
 %% ---- 3. Write source files ---------------------------------------------
 writeSourceFiles(projectRoot);
-fprintf('[✓] Source files written to src/\n');
+fprintf('[ok] Source files written to src/\n');
 
 %% ---- 4. Write test files -----------------------------------------------
 writeTestFiles(projectRoot);
-fprintf('[✓] Test files written to tests/\n');
+fprintf('[ok] Test files written to tests/\n');
 
 %% ---- 5. Write main pipeline & helpers -----------------------------------
 writeMainAndHelpers(projectRoot);
-fprintf('[✓] main.m, startup.m, runAllTests.m written\n');
+fprintf('[ok] main.m, startup.m, runAllTests.m written\n');
 
 %% ---- 6. Write Git configuration ----------------------------------------
 writeGitConfig(projectRoot);
-fprintf('[✓] .gitignore, .gitattributes written\n');
+fprintf('[ok] .gitignore, .gitattributes written\n');
 
 %% ---- 7. Write documentation --------------------------------------------
 writeDocs(projectRoot);
-fprintf('[✓] README.md, CONTRIBUTING.md, LICENSE written\n');
+fprintf('[ok] README.md, CONTRIBUTING.md, LICENSE written\n');
 
 %% ---- 8. Write CI workflow ----------------------------------------------
 writeCIWorkflow(projectRoot);
-fprintf('[✓] .github/workflows/ci.yml written\n');
+fprintf('[ok] .github/workflows/ci.yml written\n');
 
 %% ---- 9. Write gitHelper ------------------------------------------------
 writeGitHelper(projectRoot);
-fprintf('[✓] gitHelper.m written\n');
+fprintf('[ok] gitHelper.m written\n');
 
 %% ---- 10. Configure MATLAB path -----------------------------------------
 addpath(fullfile(projectRoot, 'src'));
 addpath(fullfile(projectRoot, 'tests'));
 addpath(projectRoot);
-fprintf('[✓] MATLAB path configured\n');
+fprintf('[ok] MATLAB path configured\n');
 
 %% ---- 11. Initialise Git repository -------------------------------------
 fprintf('\n--- Git Initialisation ---\n');
@@ -82,7 +82,7 @@ cd(projectRoot);
 
 [statusInit, resultInit] = system('git init');
 if statusInit == 0
-    fprintf('[✓] Git repository initialised\n');
+    fprintf('[ok] Git repository initialised\n');
     
     % Configure Git (won't overwrite if already set)
     system('git config user.email "you@example.com"');
@@ -91,20 +91,20 @@ if statusInit == 0
     % Stage everything
     [statusAdd, ~] = system('git add .');
     if statusAdd == 0
-        fprintf('[✓] All files staged\n');
+        fprintf('[ok] All files staged\n');
     end
     
     % Commit
     [statusCommit, resultCommit] = system('git commit -m "Initial commit: MATLAB + GitHub demo project"');
     if statusCommit == 0
-        fprintf('[✓] Initial commit created\n');
+        fprintf('[ok] Initial commit created\n');
     else
         fprintf('[!] Commit note: %s\n', strtrim(resultCommit));
     end
     
     % Rename branch to main
     system('git branch -M main');
-    fprintf('[✓] Branch renamed to "main"\n');
+    fprintf('[ok] Branch renamed to "main"\n');
 else
     fprintf('[!] Git not available: %s\n', strtrim(resultInit));
     fprintf('    You can initialise Git later from the MATLAB Source Control UI.\n');
@@ -114,7 +114,7 @@ cd(prevDir);
 
 %% ---- Done! --------------------------------------------------------------
 fprintf('\n╔══════════════════════════════════════════════════════════╗\n');
-fprintf('║                  Setup Complete! 🎉                      ║\n');
+fprintf('║                  Setup Complete!                          ║\n');
 fprintf('╠══════════════════════════════════════════════════════════╣\n');
 fprintf('║  Next steps:                                             ║\n');
 fprintf('║    1. cd(''%s'')              ║\n', projectRoot);

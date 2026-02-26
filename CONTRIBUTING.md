@@ -3,7 +3,7 @@
 Thank you for your interest in contributing! This document explains how to
 collaborate on this project using Git and GitHub.
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # 1. Fork the repo on GitHub
@@ -28,7 +28,7 @@ git push -u origin feature/my-improvement
 # 7. Open a Pull Request on GitHub
 ```
 
-## 📋 Guidelines
+## Guidelines
 
 ### Code Style
 - Use **camelCase** for function and variable names
@@ -52,7 +52,7 @@ git push -u origin feature/my-improvement
 - Ensure all tests pass
 - Request a review from at least one team member
 
-## 🐛 Reporting Issues
+## Reporting Issues
 
 Use [GitHub Issues](../../issues) with:
 - A clear title
