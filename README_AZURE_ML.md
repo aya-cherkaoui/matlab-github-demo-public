@@ -2,6 +2,16 @@
 
 Ce guide résume comment utiliser la démo Azure ML depuis ce dépôt.
 
+## 0) Objectif de la démo
+
+Cette démo montre comment passer d'un pipeline MATLAB local à un workflow MLOps Azure ML :
+
+- **MATLAB Online** pour développer et entraîner
+- **Azure ML** pour tracer, gouverner et déployer
+- **GitHub Actions** pour automatiser test/train/deploy
+
+Le but côté client : conserver l'expérience MATLAB, tout en industrialisant la chaîne ML.
+
 ## 1) Pré-requis
 
 - Workspace Azure ML existant
@@ -27,6 +37,68 @@ Token ARM (Cloud Shell) :
 az account get-access-token --resource https://management.azure.com --query accessToken -o tsv
 ```
 
+### 2.1 Commandes MATLAB pour la connexion AML
+
+#### Option A — Connexion avec token (`access_token` déjà renseigné)
+
+```matlab
+configPath = fullfile(pwd, "azure-ml", "config.json");
+conn = azureMLConnect(configPath);
+
+fprintf("Workspace: %s\n", conn.workspaceName);
+fprintf("Location : %s\n", conn.location);
+fprintf("MLflow   : %s\n", conn.mlflowUri);
+```
+
+#### Option B — Connexion via Device Code Flow
+
+Laisser `tenant_id` renseigné dans `config.json` et mettre `access_token` avec un placeholder.
+Puis exécuter :
+
+```matlab
+conn = azureMLConnect();
+```
+
+MATLAB affichera un code à entrer sur `https://microsoft.com/devicelogin`.
+
+#### Test rapide de la connexion Azure Resource Manager
+
+```matlab
+conn = azureMLConnect();
+
+opts = weboptions( ...
+  "HeaderFields", {"Authorization", sprintf("Bearer %s", conn.accessToken)}, ...
+  "ContentType", "json", ...
+  "Timeout", 30);
+
+wsUrl = sprintf("%s?api-version=2023-10-01", conn.baseUrl);
+wsInfo = webread(wsUrl, opts);
+
+disp(wsInfo.name)
+disp(wsInfo.location)
+```
+
+#### Test rapide de l'API MLflow (création d'une expérience)
+
+```matlab
+conn = azureMLConnect();
+
+mlflowOpts = weboptions( ...
+  "HeaderFields", { ...
+    "Authorization", sprintf("Bearer %s", conn.accessToken); ...
+    "Content-Type", "application/json" ...
+  }, ...
+  "ContentType", "json", ...
+  "MediaType", "application/json", ...
+  "Timeout", 30);
+
+expBody = jsonencode(struct("name", "matlab-connection-test"));
+webwrite(sprintf("%s/api/2.0/mlflow/experiments/create", conn.mlflowUri), expBody, mlflowOpts);
+```
+
+Si la dernière commande échoue avec `Authentication to workspace storage account failed`,
+la connexion Azure est OK mais les droits RBAC storage sont insuffisants.
+
 ## 3) Exécution dans MATLAB Online
 
 Depuis la racine du projet :
@@ -42,7 +114,50 @@ Entraînement + export ONNX :
 trainAndExportModel
 ```
 
-## 4) Déploiement endpoint (Cloud Shell)
+## 4) Azure ML en détail (ce qu'apporte AML)
+
+### 4.1 Expérimentation et traçabilité
+
+Avec `mainWithAzureML`, chaque exécution est tracée dans Azure ML (via API MLflow REST) :
+
+- paramètres (`sample_rate`, `duration`, `noise_level`, etc.)
+- métriques (`snr_db`, `rms`, `num_peaks`, fréquences détectées)
+- statut des runs (succès/échec)
+
+Résultat : comparaison de runs et reproductibilité au niveau équipe.
+
+### 4.2 Gouvernance modèle
+
+Avec `trainAndExportModel` :
+
+- entraînement du modèle LSTM dans MATLAB Online
+- export ONNX (`models/signal_classifier.onnx`)
+- tracking des métriques de training dans Azure ML
+
+Résultat : cycle modèle lisible, versionnable, prêt pour le déploiement.
+
+### 4.3 Serving managé
+
+Le modèle ONNX est servi via un endpoint Azure ML managé :
+
+- endpoint : `azure-ml/endpoint.yml`
+- déploiement : `azure-ml/deployment.yml`
+- scoring script : `azure-ml/scoring/score.py`
+
+Résultat : API REST exploitable par MATLAB, applis métiers et intégrations tierces.
+
+### 4.4 Automatisation MLOps
+
+Le workflow GitHub Actions `/.github/workflows/mlops.yml` automatise :
+
+1. tests MATLAB
+2. training Azure ML
+3. model registration
+4. endpoint deployment
+
+Résultat : passage dev -> prod plus rapide, moins d'opérations manuelles.
+
+## 5) Déploiement endpoint (Cloud Shell)
 
 ```bash
 az extension add -n ml -y
@@ -50,7 +165,7 @@ az ml online-endpoint create --file azure-ml/endpoint.yml --resource-group rg-ma
 az ml online-deployment create --file azure-ml/deployment.yml --resource-group rg-matlab-demo --workspace-name mlw-matlab-demo --all-traffic
 ```
 
-## 5) Scoring depuis MATLAB Online
+## 6) Scoring depuis MATLAB Online
 
 ```matlab
 scoringUri = "<endpoint-scoring-uri>";
@@ -63,9 +178,65 @@ features = [res.rmsVal, res.stdVal, res.snrEstimate, res.peakFreqs];
 prediction = scoreMATLABToAzure(features, scoringUri, apiKey)
 ```
 
-## 6) Dépannage rapide
+## 7) Résultats attendus et KPI démo
 
-- Erreur `Authentication to workspace storage account failed` :
-  - vérifier les rôles RBAC sur le storage lié au workspace
-  - vérifier `publicNetworkAccess` si MATLAB Online doit écrire vers MLflow
-- Erreur token : régénérer `access_token`.
+### 7.1 Résultats techniques attendus
+
+- Le pipeline MATLAB tourne de bout en bout (`main`, `mainWithAzureML`)
+- Le modèle est entraîné et exporté en ONNX
+- Un endpoint Azure ML est accessible via URI HTTPS
+- Une prédiction est obtenue depuis MATLAB via `scoreMATLABToAzure`
+
+### 7.2 KPI à montrer au client
+
+Pendant la démo, mettre en avant ces indicateurs :
+
+1. **Validation accuracy** du modèle (ex. proche de 100% sur dataset synthétique)
+2. **Temps de réponse endpoint** (`result.responseTime`) depuis MATLAB
+3. **Nombre de runs tracés** dans Azure ML (`matlab-signal-analysis`)
+4. **Délai de mise en production** (commit -> déploiement endpoint)
+5. **Taux d'automatisation** (actions manuelles supprimées via CI/CD)
+
+### 7.3 Où visualiser les résultats dans Azure ML
+
+- **Experiments** : runs, paramètres, courbes de métriques
+- **Models** : versions de modèles enregistrés
+- **Endpoints** : santé, latence, taux d'erreurs
+- **Activity / monitoring** : diagnostic opérationnel et audit
+
+### 7.4 Trame de restitution client (2 minutes)
+
+- **Avant** : pipeline MATLAB performant mais local et peu gouverné
+- **Après** : même expérience MATLAB, avec traçabilité, versioning et serving managé
+- **Impact business** : baisse du time-to-production, meilleure fiabilité, meilleure collaboration
+
+## 8) Dépannage rapide
+
+### Erreur `Authentication to workspace storage account failed`
+
+- vérifier les rôles RBAC sur le storage lié au workspace :
+  - `Storage Blob Data Contributor`
+  - `Storage Queue Data Contributor`
+- vérifier `publicNetworkAccess` du storage si MATLAB Online doit écrire vers MLflow
+- régénérer le token ARM et mettre à jour `access_token`
+
+### Erreur `Could not access server` sur scoring endpoint
+
+- vérifier que l'URI endpoint correspond à la bonne région (ex: `eastus`)
+- vérifier que l'endpoint est en état `Succeeded`
+- vérifier que l'auth mode est `key` et récupérer une clé valide
+
+### Erreur token / authentification
+
+- régénérer `access_token` :
+
+```bash
+az account get-access-token --resource https://management.azure.com --query accessToken -o tsv
+```
+
+### Commandes de vérification utiles
+
+```bash
+az ml online-endpoint show -n matlab-signal-classifier -g rg-matlab-demo -w mlw-matlab-demo --query "{state:provisioning_state,scoringUri:scoring_uri,auth:auth_mode}" -o json
+az ml online-endpoint get-credentials -n matlab-signal-classifier -g rg-matlab-demo -w mlw-matlab-demo --query "{primaryKey:primaryKey}" -o json
+```
