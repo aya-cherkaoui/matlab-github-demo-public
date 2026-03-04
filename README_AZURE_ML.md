@@ -10,7 +10,6 @@ Cette démo montre comment passer d'un pipeline MATLAB local à un workflow MLOp
 - **Azure ML** pour tracer, gouverner et déployer
 - **GitHub Actions** pour automatiser test/train/deploy
 
-Le but côté client : conserver l'expérience MATLAB, tout en industrialisant la chaîne ML.
 
 ## 1) Pré-requis
 
