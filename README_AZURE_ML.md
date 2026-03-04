@@ -114,7 +114,7 @@ Entraînement + export ONNX :
 trainAndExportModel
 ```
 
-## 4) Azure ML en détail (ce qu'apporte AML)
+## 4) Azure ML en détail
 
 ### 4.1 Expérimentation et traçabilité
 
