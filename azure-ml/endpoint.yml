@@ -1,0 +1,14 @@
+# Azure ML — Endpoint managé pour le modèle de classification de signaux
+# =========================================================================
+# Déploie un endpoint REST pour l'inférence temps réel.
+# Le modèle ONNX exporté depuis MATLAB est servi via ONNX Runtime.
+# =========================================================================
+
+$schema: https://azuremlschemas.azureedge.net/latest/managedOnlineEndpoint.schema.json
+name: matlab-signal-classifier
+description: "Endpoint de classification de signaux — modèle entraîné en MATLAB, exporté ONNX"
+auth_mode: key
+tags:
+  project: matlab-github-demo
+  framework: matlab-onnx
+  stage: demo

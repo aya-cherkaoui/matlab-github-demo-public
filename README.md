@@ -38,7 +38,23 @@ The pipeline itself generates a synthetic multi-frequency signal, runs FFT-based
 
 ```
 Generate Signal  ->  Analyse (FFT + Stats)  ->  Visualise  ->  Export Report
+                                                     |
+                                               Train Model (LSTM)
+                                                     |
+                                               Export ONNX  ->  Azure ML (Track + Deploy)
 ```
+
+### Azure Machine Learning Integration
+
+This project also demonstrates a full MLOps workflow with Azure ML:
+
+- **Experiment tracking** — log metrics and artifacts to Azure ML via MLflow
+- **Model training** — train an LSTM signal classifier in MATLAB
+- **ONNX export** — export trained models for cross-platform deployment
+- **Managed endpoints** — deploy models as REST APIs on Azure ML
+- **CI/CD** — automated train → register → deploy pipeline via GitHub Actions
+
+See [`docs/DEMO_AZURE_ML.md`](docs/DEMO_AZURE_ML.md) for the full demo scenario.
 
 ---
 
@@ -58,6 +74,20 @@ matlab-github-demo/
 |   |-- analyseSignal.m     FFT analysis, peak detection, statistics
 |   |-- visualiseResults.m  Publication-quality plots
 |   |-- generateReport.m    Text summary report
+|   |-- azureMLConnect.m    Connect MATLAB to Azure ML workspace (Python SDK)
+|   |-- mainWithAzureML.m   Main pipeline with Azure ML tracking
+|   |-- trainAndExportModel.m  Train LSTM classifier + export ONNX
+|   |-- scoreMATLABToAzure.m   Call Azure ML endpoint from MATLAB
+|
+|-- azure-ml/
+|   |-- config.json          Azure ML workspace configuration
+|   |-- environment.yml      Custom environment (MATLAB Runtime)
+|   |-- endpoint.yml         Managed online endpoint definition
+|   |-- deployment.yml       Model deployment configuration
+|   |-- train_job.yml        Azure ML training job definition
+|   |-- docker-context/      Dockerfile for MATLAB Runtime environment
+|   |-- scoring/             Scoring script + conda env for endpoint
+|   |-- scripts/             Python training wrapper
 |
 |-- tests/
 |   |-- TestGenerateSignal.m

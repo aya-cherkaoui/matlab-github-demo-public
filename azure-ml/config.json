@@ -1,0 +1,8 @@
+{
+    "subscription_id": "179d75c9-3e29-4901-9d7b-f48bc7d7a013",
+    "resource_group": "rg-matlab-demo",
+    "workspace_name": "mlw-matlab-demo",
+    "location": "eastus",
+    "tenant_id": "b5bf76d0-dea6-4edc-9dbe-b8b15b00540b",
+    "access_token": "<PASTE_FRESH_ARM_TOKEN_HERE>"
+}

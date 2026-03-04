@@ -1,0 +1,192 @@
+# =========================================================================
+# GitHub Actions — MLOps Pipeline : MATLAB + Azure Machine Learning
+# =========================================================================
+#
+# Ce workflow automatise :
+# 1. Tests MATLAB (à chaque push)
+# 2. Entraînement du modèle sur Azure ML (sur tag v*)
+# 3. Enregistrement du modèle dans le Model Registry
+# 4. Déploiement sur un endpoint managé
+#
+# Pré-requis (GitHub Secrets) :
+#   AZURE_CREDENTIALS    — Service Principal JSON (az ad sp create-for-rbac)
+#   AZURE_SUBSCRIPTION   — ID de la subscription Azure
+#   AZURE_RG             — Nom du Resource Group
+#   AZURE_ML_WORKSPACE   — Nom du workspace Azure ML
+# =========================================================================
+
+name: MLOps — MATLAB + Azure ML
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  release:
+    types: [published]
+
+env:
+  AZURE_RG: ${{ secrets.AZURE_RG }}
+  AZURE_ML_WORKSPACE: ${{ secrets.AZURE_ML_WORKSPACE }}
+
+jobs:
+  # -----------------------------------------------------------------------
+  # Job 1 : Tests MATLAB
+  # -----------------------------------------------------------------------
+  matlab-tests:
+    name: "Tests MATLAB"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MATLAB
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          release: R2024b
+          products: |
+            Signal_Processing_Toolbox
+            Deep_Learning_Toolbox
+
+      - name: Run Tests
+        uses: matlab-actions/run-tests@v2
+        with:
+          source-folder: src
+          test-results-junit: results/test-results.xml
+          code-coverage-cobertura: results/coverage.xml
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: results/
+
+  # -----------------------------------------------------------------------
+  # Job 2 : Entraînement sur Azure ML (uniquement sur release)
+  # -----------------------------------------------------------------------
+  train-model:
+    name: "Entraînement Azure ML"
+    runs-on: ubuntu-latest
+    needs: matlab-tests
+    if: github.event_name == 'release'
+    outputs:
+      model-version: ${{ steps.register.outputs.model-version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Setup Azure ML CLI
+        run: |
+          az extension add -n ml -y
+          az configure --defaults group=${{ env.AZURE_RG }} workspace=${{ env.AZURE_ML_WORKSPACE }}
+
+      - name: Submit Training Job
+        id: training
+        run: |
+          # Soumettre le job d'entraînement
+          JOB_NAME=$(az ml job create \
+            --file azure-ml/train_job.yml \
+            --query name -o tsv)
+
+          echo "job-name=$JOB_NAME" >> $GITHUB_OUTPUT
+          echo "🚀 Job soumis : $JOB_NAME"
+
+          # Attendre la fin du job
+          az ml job stream --name $JOB_NAME
+
+      - name: Register Model
+        id: register
+        run: |
+          # Récupérer le chemin du modèle depuis le job
+          JOB_NAME=${{ steps.training.outputs.job-name }}
+          MODEL_PATH="azureml://jobs/$JOB_NAME/outputs/model_output"
+
+          # Enregistrer le modèle
+          MODEL_VERSION=$(az ml model create \
+            --name matlab-signal-classifier-onnx \
+            --path "$MODEL_PATH/signal_classifier.onnx" \
+            --type custom_model \
+            --description "Signal classifier LSTM — trained via GitHub Actions — ${{ github.ref_name }}" \
+            --tags project=matlab-github-demo framework=matlab version=${{ github.ref_name }} \
+            --query version -o tsv)
+
+          echo "model-version=$MODEL_VERSION" >> $GITHUB_OUTPUT
+          echo "✅ Modèle enregistré : v$MODEL_VERSION"
+
+  # -----------------------------------------------------------------------
+  # Job 3 : Déploiement de l'endpoint (uniquement sur release)
+  # -----------------------------------------------------------------------
+  deploy-endpoint:
+    name: "Déploiement Endpoint"
+    runs-on: ubuntu-latest
+    needs: train-model
+    if: github.event_name == 'release'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Setup Azure ML CLI
+        run: |
+          az extension add -n ml -y
+          az configure --defaults group=${{ env.AZURE_RG }} workspace=${{ env.AZURE_ML_WORKSPACE }}
+
+      - name: Create/Update Endpoint
+        run: |
+          # Créer l'endpoint s'il n'existe pas
+          az ml online-endpoint create \
+            --file azure-ml/endpoint.yml \
+            --set auth_mode=key \
+            2>/dev/null || echo "Endpoint existe déjà"
+
+      - name: Deploy Model
+        run: |
+          MODEL_VERSION=${{ needs.train-model.outputs.model-version }}
+
+          # Mettre à jour le déploiement avec la nouvelle version
+          az ml online-deployment create \
+            --file azure-ml/deployment.yml \
+            --set model=azureml:matlab-signal-classifier-onnx:$MODEL_VERSION \
+            --all-traffic
+
+          echo "✅ Modèle v$MODEL_VERSION déployé sur l'endpoint"
+
+      - name: Test Endpoint
+        run: |
+          # Test rapide de l'endpoint
+          SCORING_URI=$(az ml online-endpoint show \
+            --name matlab-signal-classifier \
+            --query scoring_uri -o tsv)
+
+          API_KEY=$(az ml online-endpoint get-credentials \
+            --name matlab-signal-classifier \
+            --query primaryKey -o tsv)
+
+          # Requête de test
+          curl -s -X POST "$SCORING_URI" \
+            -H "Authorization: Bearer $API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"input_data": {"columns": ["signal"], "data": [[0.1, 0.5, -0.3, 0.8, -0.2]]}}' \
+            | python -m json.tool
+
+          echo "✅ Endpoint opérationnel"
+
+      - name: Summary
+        run: |
+          echo "## 🚀 Déploiement MLOps terminé" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Élément | Valeur |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Modèle | matlab-signal-classifier-onnx v${{ needs.train-model.outputs.model-version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Endpoint | matlab-signal-classifier |" >> $GITHUB_STEP_SUMMARY
+          echo "| Release | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY

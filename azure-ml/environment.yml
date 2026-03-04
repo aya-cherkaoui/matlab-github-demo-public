@@ -1,0 +1,17 @@
+# Azure ML Environment — MATLAB Runtime
+# =========================================================================
+# Cet environnement permet d'exécuter du MATLAB compilé (via MATLAB Runtime)
+# sur les compute clusters Azure ML.
+#
+# Utilisé pour les jobs d'entraînement et de batch scoring.
+# =========================================================================
+
+$schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
+name: matlab-runtime-env
+version: 1
+description: "Environnement Azure ML avec MATLAB Runtime R2024b pour exécution de code MATLAB compilé"
+
+build:
+  path: ./docker-context
+  dockerfile_path: Dockerfile
+

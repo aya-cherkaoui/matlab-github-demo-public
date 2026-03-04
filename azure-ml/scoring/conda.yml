@@ -1,0 +1,15 @@
+# Environnement Conda pour le scoring endpoint
+# Utilisé par le déploiement Azure ML pour servir le modèle ONNX
+
+name: scoring-env
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+    - onnxruntime>=1.17.0
+    - numpy>=1.24.0
+    - azureml-defaults>=1.50.0
+    - inference-schema>=1.5.0

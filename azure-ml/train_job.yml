@@ -1,0 +1,45 @@
+# Azure ML — Job d'entraînement MATLAB
+# =========================================================================
+# Soumet un job d'entraînement qui exécute le code MATLAB compilé
+# sur un compute cluster Azure ML.
+# =========================================================================
+
+$schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
+type: command
+display_name: matlab-signal-training
+description: "Entraînement du classificateur de signaux MATLAB sur Azure ML"
+experiment_name: matlab-signal-analysis
+
+compute: azureml:matlab-cpu-cluster
+
+environment:
+  name: matlab-runtime-env
+  version: 1
+
+code: ../
+
+command: >-
+  python azure-ml/scripts/run_training.py
+  --data-path ${{inputs.training_data}}
+  --output-path ${{outputs.model_output}}
+  --epochs 30
+  --learning-rate 0.001
+
+inputs:
+  training_data:
+    type: uri_folder
+    path: azureml://datastores/workspaceblobstore/paths/matlab-demo/data/
+
+outputs:
+  model_output:
+    type: uri_folder
+    mode: rw_mount
+
+tags:
+  project: matlab-github-demo
+  framework: matlab
+  task: signal-classification
+
+resources:
+  instance_count: 1
+  instance_type: Standard_DS3_v2
