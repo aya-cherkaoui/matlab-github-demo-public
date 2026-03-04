@@ -178,39 +178,7 @@ features = [res.rmsVal, res.stdVal, res.snrEstimate, res.peakFreqs];
 prediction = scoreMATLABToAzure(features, scoringUri, apiKey)
 ```
 
-## 7) Résultats attendus et KPI démo
-
-### 7.1 Résultats techniques attendus
-
-- Le pipeline MATLAB tourne de bout en bout (`main`, `mainWithAzureML`)
-- Le modèle est entraîné et exporté en ONNX
-- Un endpoint Azure ML est accessible via URI HTTPS
-- Une prédiction est obtenue depuis MATLAB via `scoreMATLABToAzure`
-
-### 7.2 KPI à montrer au client
-
-Pendant la démo, mettre en avant ces indicateurs :
-
-1. **Validation accuracy** du modèle (ex. proche de 100% sur dataset synthétique)
-2. **Temps de réponse endpoint** (`result.responseTime`) depuis MATLAB
-3. **Nombre de runs tracés** dans Azure ML (`matlab-signal-analysis`)
-4. **Délai de mise en production** (commit -> déploiement endpoint)
-5. **Taux d'automatisation** (actions manuelles supprimées via CI/CD)
-
-### 7.3 Où visualiser les résultats dans Azure ML
-
-- **Experiments** : runs, paramètres, courbes de métriques
-- **Models** : versions de modèles enregistrés
-- **Endpoints** : santé, latence, taux d'erreurs
-- **Activity / monitoring** : diagnostic opérationnel et audit
-
-### 7.4 Trame de restitution client (2 minutes)
-
-- **Avant** : pipeline MATLAB performant mais local et peu gouverné
-- **Après** : même expérience MATLAB, avec traçabilité, versioning et serving managé
-- **Impact business** : baisse du time-to-production, meilleure fiabilité, meilleure collaboration
-
-## 8) Dépannage rapide
+## 7) Dépannage rapide
 
 ### Erreur `Authentication to workspace storage account failed`
 
