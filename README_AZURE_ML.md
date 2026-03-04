@@ -1,6 +1,5 @@
 # MATLAB Online + Azure ML README
 
-Ce guide résume comment utiliser la démo Azure ML depuis ce dépôt.
 
 ## 0) Objectif de la démo
 
